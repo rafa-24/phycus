@@ -7,6 +7,10 @@ from app.modules.auth.utils.password import hash_password
 
 from app.modules.shared.schemas.api_response import ApiResponse
 from app.modules.email.service.email_service import EmailService
+from app.modules.shared.exceptions.app_exceptions import (
+    ConflictException,
+    InternalServerException,
+)
 
 class UserService:
 
@@ -19,7 +23,7 @@ class UserService:
         existing_user = self.user_repository.get_user_by_email(session, user.email)
 
         if existing_user:
-            raise Exception("El correo ya esta registrado.")
+            raise ConflictException("El correo ya esta registrado.")
         
         # Instanciar nuevo usuario
         new_user = Users(
@@ -35,7 +39,7 @@ class UserService:
 
         # verificar si el usuario se creo
         if created_user.id is None:
-            raise Exception("No fue posible crear usuario")
+            raise InternalServerException("No fue posible crear usuario")
         
         # enviar email
         html = self.email_service.render_template(
