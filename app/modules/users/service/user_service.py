@@ -6,11 +6,13 @@ from app.modules.users.repository.user_repository import UserRepository
 from app.modules.auth.utils.password import hash_password
 
 from app.modules.shared.schemas.api_response import ApiResponse
+from app.modules.email.service.email_service import EmailService
 
 class UserService:
 
     def __init__(self):
         self.user_repository = UserRepository()
+        self.email_service = EmailService()
 
     def create(self, session: Session, user: UserCreate):
 
@@ -36,6 +38,16 @@ class UserService:
             raise Exception("No fue posible crear usuario")
         
         # enviar email
+        html = self.email_service.render_template(
+            "welcome.html",
+            {"name": created_user.first_name}
+        )
+
+        self.email_service.send_email(
+            to_email= created_user.email,
+            subject= "Bienvenido a phycus",
+            html_content= html
+        )
 
         return ApiResponse(
             message= "Su registro se completo de manera exitosa.",
